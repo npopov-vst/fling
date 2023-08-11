@@ -484,9 +484,10 @@ func startFileWorker(file FlingInFile, outputs map[string]interface{}) {
 }
 
 func fileInWorker(file FlingInFile, outputs map[string]interface{}) {
+	seek := os.SEEK_SET
 	for {
 
-		t, tailErr := tail.TailFile(file.Path, tail.Config{Follow: true, ReOpen: true, Poll: !*inotifyFlag, Location: &tail.SeekInfo{0, os.SEEK_END}})
+		t, tailErr := tail.TailFile(file.Path, tail.Config{Follow: true, ReOpen: true, Poll: !*inotifyFlag, Location: &tail.SeekInfo{0, seek}})
 
 		if tailErr != nil {
 			log.WithFields(log.Fields{
@@ -504,6 +505,7 @@ func fileInWorker(file FlingInFile, outputs map[string]interface{}) {
 				processInFileLine(line, file, outputs)
 			case <-time.After(time.Hour):
 				t.Stop()
+				seek = os.SEEK_END
 				break Processing
 			}
 		}
